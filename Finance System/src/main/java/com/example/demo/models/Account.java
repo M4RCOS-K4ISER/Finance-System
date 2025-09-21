@@ -1,21 +1,17 @@
 package com.example.demo.models;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 
+@Entity
 public class Account extends BaseModel{
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name="usuario_id")
+    @JoinColumn(name="usuario_id", nullable=false)
     @NotNull
-    @Column(nullable = false)
     private User user_id;
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "banco_id")
+    @JoinColumn(name = "banco_id", nullable = false)
     @NotNull
-    @Column(nullable = false)
     private Bank bank_id;
     @NotNull
     @Column(nullable = false)

@@ -1,7 +1,10 @@
 package com.example.demo.models;
 
+import jakarta.persistence.Entity;
+
 import java.time.LocalDate;
 
+@Entity
 public class Transaction extends BaseModel{
     private String nome;
     private float valor;

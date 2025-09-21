@@ -4,21 +4,21 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
+@Entity
 public class CreditCard extends BaseModel {
     @NotBlank
     @Column(nullable = false)
     private String nome;
-    @OneToMany(mappedBy = "cartao_credito", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "banco_id",  nullable = false)
     @NotNull
-    @Column(nullable = false)
     private Bank bank_id;
     @NotNull
     @Column(nullable = false)
     private float limite;
     @ManyToOne(fetch = FetchType.LAZY)//Os dados dos usuários só serão carregados se você requisitar
-    @JoinColumn(name = "usuario_id")//Identifica qual a coluna da FK no BD
+    @JoinColumn(name = "usuario_id", nullable = false)//Identifica qual a coluna da FK no BD
     @NotNull
-    @Column(nullable = false)
     private User user_id;
 
     public  String getNome() {return nome;}

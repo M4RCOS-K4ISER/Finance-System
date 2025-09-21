@@ -2,6 +2,7 @@ package com.example.demo.models;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 
+@Entity
 public class Bank extends BaseModel {
     @NotBlank
     @Column(nullable = false)
