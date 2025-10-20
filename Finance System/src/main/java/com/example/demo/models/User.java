@@ -1,8 +1,9 @@
 package com.example.demo.models;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+
+import java.util.List;
 
 @Entity
 public class User extends BaseModel{
@@ -18,6 +19,13 @@ public class User extends BaseModel{
     @NotBlank
     @Column(nullable = false)
     private String pass_hash;
+    @NotBlank
+    @Column(nullable = false)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.PERSIST)
+    @JoinTable(name="users_roles",
+        joinColumns = @JoinColumn(name="user_id"),
+        inverseJoinColumns = @JoinColumn(name="role_id"))
+    private List<Role> roles;
 
     public String getName() {return name;}
     public void setName(String name) {this.name = name;}
@@ -27,4 +35,6 @@ public class User extends BaseModel{
     public void setCpf(String cpf) {this.cpf = cpf;}
     public String getPass_hash() {return pass_hash;}
     public void setPass_hash(String senha) {this.pass_hash = senha;}
+    public List<Role> getRoles() {return roles;}
+    public void setRoles(@NotBlank List<Role> roles) {this.roles = roles;}
 }
