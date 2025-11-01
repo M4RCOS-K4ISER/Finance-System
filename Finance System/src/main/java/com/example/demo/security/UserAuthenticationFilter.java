@@ -8,7 +8,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -30,7 +29,7 @@ public class UserAuthenticationFilter extends OncePerRequestFilter {
             String token=recoveryToken(request);//Recupera o token do cabeçalho Authorization
             if (token!=null){
                 String subject = jwtTokenService.getSubject(token);//Obtem o assunto do token
-                User user=userRepository.findByEmail(subject);
+                User user=userRepository.findByEmail(subject).get();
                 UserDetailsImpl userDetails=new UserDetailsImpl(user);
                 //Criar um objeto de autenticação do Spring Security
                 Authentication authentication=new UsernamePasswordAuthenticationToken(userDetails.getUsername(), null, userDetails.getAuthorities());
@@ -53,6 +52,6 @@ public class UserAuthenticationFilter extends OncePerRequestFilter {
 
     private boolean checkIfEndpointIsNotPublic(HttpServletRequest request) {
         String requestURI=request.getRequestURI();
-        return !Arrays.asList(SecurityAutoConfiguration.ENDPOINTS_WITH_AUTHENTICATION_NOT_REQUIRED).contains(requestURI);
+        return !Arrays.asList(SecurityConfig.ENDPOINTS_WITH_AUTHENTICATION_NOT_REQUIRED).contains(requestURI);
     }
 }

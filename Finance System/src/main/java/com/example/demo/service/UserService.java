@@ -1,67 +1,54 @@
 package com.example.demo.service;
 
-import com.example.demo.dto.UserDTO;
+import com.example.demo.dto.CreateUserDTO;
+import com.example.demo.dto.LoginUserDTO;
+import com.example.demo.dto.RecoveryJwtTokenDTO;
+import com.example.demo.models.Role;
 import com.example.demo.models.User;
+import com.example.demo.models.UserDetailsImpl;
 import com.example.demo.repository.UserRepository;
-import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
+import com.example.demo.security.JwtTokenService;
+import com.example.demo.security.SecurityConfig;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Service;
+
 import java.util.List;
-import java.util.Optional;
 
+@Service
 public class UserService {
-    @Autowired
-    private final UserRepository userRepository;
-    @Autowired
-    private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {this.userRepository = userRepository;this.passwordEncoder = passwordEncoder;}
+    @Autowired
+    private AuthenticationManager authenticationManager;
 
-    @Transactional
-    public User createUser(User user) {
-        UserDTO newUser = new UserDTO();
-        newUser.setName(user.getName());
-        newUser.setEmail(user.getEmail());
-        newUser.setCpf(user.getCpf());
-        String password=passwordEncoder.encode(user.getPass_hash());
-        newUser.setPassword(password);
-        return userRepository.save(user);
+    @Autowired
+    private JwtTokenService jwtTokenService;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private SecurityConfig  securityConfig;
+
+    public RecoveryJwtTokenDTO authenticateUser(LoginUserDTO loginUserDTO){
+        UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(loginUserDTO.email(), loginUserDTO.password());
+
+        Authentication authentication = authenticationManager.authenticate(usernamePasswordAuthenticationToken);
+
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+
+        return new RecoveryJwtTokenDTO(jwtTokenService.generateToken(userDetails));
     }
 
-    public UserDetails loadUserByEmail(String email) throws UsernameNotFoundException {
-        User user = userRepository.findByEmail(email);
-        return org.springframework.security.core.userdetails.User
-                .withUserDetails(user.getEmail())
-                .password(user.getPass_hash())
-                .roles(user.getRole())
+    public void createUser(CreateUserDTO createUserDTO){
+        User newUser = User.builder()
+                .email(createUserDTO.email())
+                .pass_hash(securityConfig.passwordEncoder().encode(createUserDTO.password()))
+                .roles(List.of(Role.builder().name(createUserDTO.role()).build()))
                 .build();
-    }
 
-    @Transactional
-    public User getUserById(Long id) {
-        return userRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Usuário não encontrado com o ID: " + id));
-    }
-    @Transactional
-    public User getUserByName(String name) {
-        return userRepository.findByName(name);
-    }
-    @Transactional
-    public User getUserByCpf(String cpf) {
-        return userRepository.findByCpf(cpf);
-    }
-    @Transactional
-    public User getUserByEmail(String email) {
-        return userRepository.findByEmail(email);
-    }
-    @Transactional
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
-    }
-    @Transactional
-    public User updateUser(Long id) {
-        return userRepository.save(new  User());
+        userRepository.save(newUser);
     }
 }

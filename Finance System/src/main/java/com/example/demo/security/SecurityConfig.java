@@ -11,7 +11,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.AuthenticationFilter;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
@@ -19,7 +18,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     @Autowired
-    private AuthenticationFilter authenticationFilter;
+    private UserAuthenticationFilter userAuthenticationFilter;
 
     public static final String[] ENDPOINTS_WITH_AUTHENTICATION_NOT_REQUIRED={
             "/user/login",
@@ -38,8 +37,6 @@ public class SecurityConfig {
     public static final String[] ENDPOINTS_ADMIN={
             "/user/test/admin"
     };
-    @Autowired
-    private UserAuthenticationFilter userAuthenticationFilter;
 
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity.csrf().disable()

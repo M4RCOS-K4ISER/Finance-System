@@ -15,9 +15,9 @@ public class UserDetailsImpl implements UserDetails {
     }
 
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return user.getRoles()
-                .stream()
-                .map(role -> new SimpleGrantedAuthority(role.getName()))
+        return user.getRoles()//Obtem os papeis
+                .stream()//Transforma em uma lista de objetos que o spring security entende
+                .map(role -> new SimpleGrantedAuthority(role.getName().name()))
                 .collect(Collectors.toList());
     }
 
