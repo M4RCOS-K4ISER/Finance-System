@@ -45,7 +45,7 @@ public class UserService {
     public void createUser(CreateUserDTO createUserDTO){
         User newUser = User.builder()
                 .email(createUserDTO.email())
-                .pass_hash(securityConfig.passwordEncoder().encode(createUserDTO.password()))
+                .password(securityConfig.passwordEncoder().encode(createUserDTO.password()))
                 .roles(List.of(Role.builder().name(createUserDTO.role()).build()))
                 .build();
 

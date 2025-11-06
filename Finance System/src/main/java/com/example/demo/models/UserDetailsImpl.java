@@ -17,18 +17,24 @@ public class UserDetailsImpl implements UserDetails {
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return user.getRoles()//Obtem os papeis
                 .stream()//Transforma em uma lista de objetos que o spring security entende
-                .map(role -> new SimpleGrantedAuthority(role.getName().name()))
+                .map(role -> {
+                    String roleName=role.getName().name();
+                    if(roleName.startsWith("ROLE_")){
+                        roleName = roleName.substring(5);
+                    }
+                    return new SimpleGrantedAuthority(roleName);
+                })
                 .collect(Collectors.toList());
     }
 
     @Override
     public String getPassword() {
-        return user.getPass_hash();
+        return user.getPassword();
     }
 
     @Override
     public String getUsername() {
-        return user.getName();
+        return user.getEmail();
     }
 
     @Override

@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Optional;
 
 @Component
 public class UserAuthenticationFilter extends OncePerRequestFilter {
@@ -24,19 +25,21 @@ public class UserAuthenticationFilter extends OncePerRequestFilter {
     private UserRepository userRepository;
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        //Verifica se o endpoint requer autenticação antes de processar a requisição
-        if (checkIfEndpointIsNotPublic(request)){
-            String token=recoveryToken(request);//Recupera o token do cabeçalho Authorization
-            if (token!=null){
-                String subject = jwtTokenService.getSubject(token);//Obtem o assunto do token
-                User user=userRepository.findByEmail(subject).get();
-                UserDetailsImpl userDetails=new UserDetailsImpl(user);
-                //Criar um objeto de autenticação do Spring Security
-                Authentication authentication=new UsernamePasswordAuthenticationToken(userDetails.getUsername(), null, userDetails.getAuthorities());
-                //Define o objeto de autenticação no contexto de segurança do Spring Boot
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-            }else{
-                throw new RuntimeException("Token ausente.");
+        String token=recoveryToken(request);//Recupera o token do cabeçalho Authorization
+        if (checkIfEndpointIsNotPublic(request)) {
+            if (token != null) {
+                try {
+                    String subject = jwtTokenService.getSubject(token);//Obtem o assunto do token
+                    Optional<User> userOptional = userRepository.findByEmail(subject);
+                    if (userOptional.isPresent()) {
+                        User user = userOptional.get();
+                        UserDetailsImpl userDetailsImpl = new UserDetailsImpl(user);
+                        Authentication authentication = new UsernamePasswordAuthenticationToken(userDetailsImpl, null, userDetailsImpl.getAuthorities());
+                        SecurityContextHolder.getContext().setAuthentication(authentication);
+                    }
+                } catch (Exception e) {
+                    System.err.println("Erro de validação de token" + e.getMessage());
+                }
             }
         }
         filterChain.doFilter(request,response);//Continua o processamento da requisição
