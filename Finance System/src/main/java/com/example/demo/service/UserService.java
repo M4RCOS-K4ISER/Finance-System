@@ -4,17 +4,24 @@ import com.example.demo.dto.CreateUserDTO;
 import com.example.demo.dto.LoginUserDTO;
 import com.example.demo.dto.RecoveryJwtTokenDTO;
 import com.example.demo.models.Role;
+import com.example.demo.models.RoleName;
 import com.example.demo.models.User;
 import com.example.demo.models.UserDetailsImpl;
+import com.example.demo.repository.RoleRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.security.JwtTokenService;
 import com.example.demo.security.SecurityConfig;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -22,33 +29,43 @@ public class UserService {
 
     @Autowired
     private AuthenticationManager authenticationManager;
-
+    @Autowired
+    private RoleRepository  roleRepository;
     @Autowired
     private JwtTokenService jwtTokenService;
-
     @Autowired
     private UserRepository userRepository;
-
     @Autowired
-    private SecurityConfig  securityConfig;
+    private PasswordEncoder passwordEncoder;
 
     public RecoveryJwtTokenDTO authenticateUser(LoginUserDTO loginUserDTO){
-        UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(loginUserDTO.email(), loginUserDTO.password());
+//        UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(loginUserDTO.email(), loginUserDTO.password());
+//        Authentication authentication = authenticationManager.authenticate(usernamePasswordAuthenticationToken);
+//        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+//        return new RecoveryJwtTokenDTO(jwtTokenService.generateToken(userDetails));
+        Authentication authentication = authenticationManager.authenticate(
+            new UsernamePasswordAuthenticationToken(
+                loginUserDTO.email(),
+                loginUserDTO.password()
+            )
+        );
 
-        Authentication authentication = authenticationManager.authenticate(usernamePasswordAuthenticationToken);
-
-        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
-
-        return new RecoveryJwtTokenDTO(jwtTokenService.generateToken(userDetails));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        UserDetails userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        String token=jwtTokenService.generateToken(userDetails);
+        return new RecoveryJwtTokenDTO(token);
     }
 
+    @Transactional
     public void createUser(CreateUserDTO createUserDTO){
+        RoleName roleNameFromDTO=createUserDTO.role();
+        Role userRole=roleRepository.findByName(roleNameFromDTO);
         User newUser = User.builder()
                 .email(createUserDTO.email())
-                .password(securityConfig.passwordEncoder().encode(createUserDTO.password()))
-                .roles(List.of(Role.builder().name(createUserDTO.role()).build()))
+                .password(passwordEncoder.encode(createUserDTO.password()))
+                .roles((Collections.singletonList(userRole)))
                 .build();
 
-        userRepository.save(newUser);
+    userRepository.save(newUser);
     }
 }
