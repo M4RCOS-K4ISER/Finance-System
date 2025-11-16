@@ -20,7 +20,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 @EnableMethodSecurity
 public class SecurityConfig {
-
     @Autowired
     private UserAuthenticationFilter userAuthenticationFilter;
 
@@ -30,15 +29,12 @@ public class SecurityConfig {
             "/api/user/logout",
             "/error"
     };
-
     public static final String[] ENDPOINTS_WITH_AUTHENTICATION_REQUIRED={
             "/api/user/test"
     };
-
     public static final String[] ENDPOINTS_CUSTOMER={
             "/api/users/test/customer"
     };
-
     public static final String[] ENDPOINTS_ADMIN={
             "/api/user/test/admin"
     };
